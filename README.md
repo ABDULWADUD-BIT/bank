@@ -3,10 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-
-
-
-
 struct bank_user {
     char my_name[100];
     char fa_name[100];
