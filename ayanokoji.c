@@ -36,13 +36,16 @@ void reg() {
         struct bank_user s1;
         printf("Enter name: ");
         fgets(s1.my_name, sizeof(s1.my_name), stdin);
-        s1.my_name[strcspn(s1.my_name, "\n")] = 0; // Remove newline
+        s1.my_name[strcspn(s1.my_name, "\n")] = 0;
+
         printf("FATHER NAME: ");
         fgets(s1.fa_name, sizeof(s1.fa_name), stdin);
         s1.fa_name[strcspn(s1.fa_name, "\n")] = 0;
+
         printf("MOTHER NAME: ");
         fgets(s1.ma_name, sizeof(s1.ma_name), stdin);
         s1.ma_name[strcspn(s1.ma_name, "\n")] = 0;
+
         printf("Enter ID: ");
         scanf("%lld", &s1.id);
         printf("Enter PASSWORD: ");
@@ -77,13 +80,13 @@ void reg() {
         getchar();
 
         FILE *ptr = fopen("ff.txt", "r");
-        if (ptr == NULL) {
+        if (!ptr) {
             printf("Error opening file.\n");
             return;
         }
 
         int found = 0;
-        while (fscanf(ptr, "%s %s %s %lld %lld %lld", s1.my_name, s1.fa_name, s1.ma_name, &s1.id, &s1.pass, &s1.balance) == 6) {
+        while (fscanf(ptr, "%s %s %s %lld %lld %lld", s1.my_name, s1.fa_name, s1.ma_name, &s1.id, &s1.pass, &s1.balance) != EOF) {
             if (strcmp(s1.my_name, name) == 0 && s1.pass == password) {
                 printf("Name: %s\n", s1.my_name);
                 printf("Father's Name: %s\n", s1.fa_name);
@@ -116,21 +119,19 @@ void tran() {
 
         FILE *ptr = fopen("ff.txt", "r");
         FILE *temp = fopen("temp.txt", "w");
-        if (ptr == NULL || temp == NULL) {
-            printf("Error opening file.\n");
-            if (ptr) fclose(ptr);
-            if (temp) fclose(temp);
+        if (!ptr || !temp) {
+            printf("File error.\n");
             return;
         }
 
         int found = 0;
-        while (fscanf(ptr, "%s %s %s %lld %lld %lld", s1.my_name, s1.fa_name, s1.ma_name, &s1.id, &s1.pass, &s1.balance) == 6) {
+        while (fscanf(ptr, "%s %s %s %lld %lld %lld", s1.my_name, s1.fa_name, s1.ma_name, &s1.id, &s1.pass, &s1.balance) != EOF) {
             if (strcmp(s1.my_name, name) == 0 && s1.id == id) {
                 found = 1;
                 printf("MONEY ADD: ");
                 scanf("%lld", &x);
                 s1.balance += x;
-                printf("account money: %lld\n", s1.balance);
+                printf("Updated Balance: %lld\n", s1.balance);
 
                 FILE *npp = fopen("sf.txt", "a");
                 fprintf(npp, "%s %lld %lld\n", s1.my_name, s1.id, s1.balance);
@@ -138,6 +139,7 @@ void tran() {
             }
             fprintf(temp, "%s %s %s %lld %lld %lld\n", s1.my_name, s1.fa_name, s1.ma_name, s1.id, s1.pass, s1.balance);
         }
+
         fclose(ptr);
         fclose(temp);
 
@@ -161,13 +163,13 @@ void search() {
         getchar();
 
         FILE *ptr = fopen("ff.txt", "r");
-        if (ptr == NULL) {
+        if (!ptr) {
             printf("Error opening file.\n");
             return;
         }
 
         int found = 0;
-        while (fscanf(ptr, "%s %s %s %lld %lld %lld", s1.my_name, s1.fa_name, s1.ma_name, &s1.id, &s1.pass, &s1.balance) == 6) {
+        while (fscanf(ptr, "%s %s %s %lld %lld %lld", s1.my_name, s1.fa_name, s1.ma_name, &s1.id, &s1.pass, &s1.balance) != EOF) {
             if (strcmp(s1.my_name, name) == 0) {
                 printf("Name: %s\n", s1.my_name);
                 printf("Father's Name: %s\n", s1.fa_name);
@@ -190,35 +192,37 @@ void send_money() {
     if (choice == 4) {
         char sender_name[100], receiver_name[100];
         long long int sender_id, receiver_id, amount;
-        struct bank_user sender, receiver;
+        struct bank_user user;
 
-        printf("Enter sender name: ");
+        printf("Enter Sender Name: ");
         scanf("%s", sender_name);
-        printf("Enter sender ID: ");
+        printf("Enter Sender ID: ");
         scanf("%lld", &sender_id);
-        printf("Enter receiver name: ");
+        printf("Enter Receiver Name: ");
         scanf("%s", receiver_name);
-        printf("Enter receiver ID: ");
+        printf("Enter Receiver ID: ");
         scanf("%lld", &receiver_id);
-        printf("Enter amount to send: ");
+        printf("Enter Amount to Send: ");
         scanf("%lld", &amount);
         getchar();
 
         FILE *ptr = fopen("ff.txt", "r");
         FILE *temp = fopen("temp.txt", "w");
-        if (ptr == NULL || temp == NULL) {
-            printf("Error opening file.\n");
-            if (ptr) fclose(ptr);
-            if (temp) fclose(temp);
+
+        if (!ptr || !temp) {
+            printf("File error.\n");
             return;
         }
 
         int sender_found = 0, receiver_found = 0;
-        while (fscanf(ptr, "%s %s %s %lld %lld %lld", sender.my_name, sender.fa_name, sender.ma_name, &sender.id, &sender.pass, &sender.balance) == 6) {
-            if (strcmp(sender.my_name, sender_name) == 0 && sender.id == sender_id) {
-                sender_found = 1;
-                if (sender.balance >= amount) {
-                    sender.balance -= amount;
+        long long int sender_new_bal = 0, receiver_new_bal = 0;
+
+        while (fscanf(ptr, "%s %s %s %lld %lld %lld", user.my_name, user.fa_name, user.ma_name, &user.id, &user.pass, &user.balance) != EOF) {
+            if (strcmp(user.my_name, sender_name) == 0 && user.id == sender_id) {
+                if (user.balance >= amount) {
+                    user.balance -= amount;
+                    sender_new_bal = user.balance;
+                    sender_found = 1;
                 } else {
                     printf("Insufficient balance.\n");
                     fclose(ptr);
@@ -226,28 +230,32 @@ void send_money() {
                     remove("temp.txt");
                     return;
                 }
-            } else if (strcmp(sender.my_name, receiver_name) == 0 && sender.id == receiver_id) {
+            } else if (strcmp(user.my_name, receiver_name) == 0 && user.id == receiver_id) {
+                user.balance += amount;
+                receiver_new_bal = user.balance;
                 receiver_found = 1;
-                sender.balance += amount;
             }
-            fprintf(temp, "%s %s %s %lld %lld %lld\n", sender.my_name, sender.fa_name, sender.ma_name, sender.id, sender.pass, sender.balance);
+
+            fprintf(temp, "%s %s %s %lld %lld %lld\n", user.my_name, user.fa_name, user.ma_name, user.id, user.pass, user.balance);
         }
+
         fclose(ptr);
         fclose(temp);
 
         if (!sender_found || !receiver_found) {
-            printf("Sender or receiver not found.\n");
+            printf("Sender or Receiver not found.\n");
             remove("temp.txt");
         } else {
             remove("ff.txt");
             rename("temp.txt", "ff.txt");
 
             FILE *npp = fopen("sf.txt", "a");
-            fprintf(npp, "%s %lld %lld\n", sender_name, sender_id, sender.balance);
-            fprintf(npp, "%s %lld %lld\n", receiver_name, receiver_id, sender.balance);
+            fprintf(npp, "%s %lld %lld\n", sender_name, sender_id, sender_new_bal);
+            fprintf(npp, "%s %lld %lld\n", receiver_name, receiver_id, receiver_new_bal);
             fclose(npp);
 
-            printf("Transfer successful. Sender balance: %lld\n", sender.balance);
+            printf("Transfer successful!\n");
+            printf("Sender New Balance: %lld\n", sender_new_bal);
         }
     }
 }
